@@ -1,0 +1,31 @@
+version: '3.1'
+
+services:
+  mongo:
+    image: mongo
+    restart: on-failure
+    # environment:
+      # MONGO_INITDB_ROOT_USERNAME: root
+      # MONGO_INITDB_ROOT_PASSWORD: example
+    network_mode: host
+    command: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs", "--port","27017" ]
+    healthcheck:
+      test: echo 'rs.initiate() || rs.status().ok' | mongosh --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+  mongo-express:
+    image: mongo-express
+    restart: on-failure
+    environment:
+      # ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      # ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_SERVER: localhost
+      ME_CONFIG_MONGODB_PORT: "27017"
+    network_mode: host
+    # ports:
+    #   - "8081:8081"
+    depends_on:
+      mongo:
+        condition: service_healthy
